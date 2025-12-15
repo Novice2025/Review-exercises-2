@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lego Block Builder - English Unlocked (20 Levels)</title>
+
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 2. React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- 3. Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- 4. Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Poppins:wght@700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Poppins', 'sans-serif'] },
+                    animation: { fadeInDown: 'fadeInDown 0.5s ease-out forwards', pulseOnce: 'pulseOnce 0.5s ease-out forwards' },
+                    keyframes: {
+                        fadeInDown: { '0%': { opacity: '0', transform: 'translateY(-20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pulseOnce: { '0%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.05)' }, '100%': { transform: 'scale(1)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .typing-cursor { display: inline-block; width: 0.1em; height: 1.2em; background-color: #f8fafc; animation: blink 1s step-end infinite; margin-left: 2px; vertical-align: middle; }
+        @keyframes blink { from, to { background-color: transparent } 50% { background-color: #f8fafc } }
+        .shadow-neon { box-shadow: 0 0 10px rgba(0, 255, 255, 0.6), 0 0 20px rgba(0, 255, 255, 0.4); }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useCallback, useEffect } = React;
+
+        // --- ICONS ---
+        const RefreshCw = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>;
+        const CheckCircle = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+        const XCircle = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>;
+        const Focus = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>;
+        const ArrowRight = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
+
+        // --- 20 MIXED EXERCISES (From PDF 1 & 2) ---
+        const DRILLS = [
+            // --- SECTION 1: IDENTITY & BOSS ---
+            {
+                id: 1,
+                title: "Bloco 1: Identidade Profissional",
+                target: [
+                    { id: 1, content: 'I', color: 'bg-lime-500' },
+                    { id: 2, content: 'AM', color: 'bg-cyan-600' },
+                    { id: 3, content: 'A', color: 'bg-fuchsia-500' },
+                    { id: 4, content: 'SALES REPRESENTATIVE', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu sou um representante de vendas.",
+                explanation: {
+                    title: "Quem é você?",
+                    l1: "Eu sou um representante de vendas.",
+                    l2: "Use **I AM** + **A/AN** + Cargo. Pronúncia: {SÊILS RE-pre-ZÉN-ta-tiv}.",
+                    hook: "CHEGA DE DÚVIDAS: Identidade clara e direta!"
+                }
+            },
+            {
+                id: 2,
+                title: "Bloco 2: O Chefe",
+                target: [
+                    { id: 5, content: 'JOÃO', color: 'bg-lime-500' },
+                    { id: 6, content: 'IS', color: 'bg-cyan-600' },
+                    { id: 7, content: 'MY', color: 'bg-yellow-500' },
+                    { id: 8, content: 'BOSS', color: 'bg-red-600' },
+                ],
+                hint: "João é meu chefe.",
+                explanation: {
+                    title: "Boss vs Chef",
+                    l1: "João é meu chefe.",
+                    l2: "**Boss** = Colarinho branco (escritório). **Chef** = Cozinha. Não confunda!",
+                    hook: "NUNCA MAIS ERRE: Boss manda na empresa, Chef manda na comida."
+                }
+            },
+            {
+                id: 3,
+                title: "Bloco 3: Exigência",
+                target: [
+                    { id: 9, content: 'MY', color: 'bg-yellow-500' },
+                    { id: 10, content: 'BOSS', color: 'bg-lime-500' },
+                    { id: 11, content: 'IS', color: 'bg-cyan-600' },
+                    { id: 12, content: 'VERY DEMANDING', color: 'bg-red-500' },
+                ],
+                hint: "Meu chefe é muito exigente.",
+                explanation: {
+                    title: "Características do Chefe",
+                    l1: "Meu chefe é muito exigente.",
+                    l2: "Demanding = {DÊ-MÉN-ding}. Use para descrever personalidade.",
+                    hook: "FALE COM PRECISÃO: Descreva seu ambiente de trabalho."
+                }
+            },
+            {
+                id: 4,
+                title: "Bloco 4: Cargo de Liderança",
+                target: [
+                    { id: 13, content: 'I', color: 'bg-lime-500' },
+                    { id: 14, content: 'AM', color: 'bg-cyan-600' },
+                    { id: 15, content: 'A', color: 'bg-fuchsia-500' },
+                    { id: 16, content: 'FINANCE DIRECTOR', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu sou um diretor financeiro.",
+                explanation: {
+                    title: "Seu Cargo",
+                    l1: "Eu sou um diretor financeiro.",
+                    l2: "Estrutura fixa: Sujeito + Verbo To Be + Artigo + Cargo.",
+                    hook: "SUA IDENTIDADE: Fale com orgulho!"
+                }
+            },
+
+            // --- SECTION 2: WORK PREPOSITIONS ---
+            {
+                id: 5,
+                title: "Bloco 5: Work + AT",
+                target: [
+                    { id: 17, content: 'I', color: 'bg-lime-500' },
+                    { id: 18, content: 'WORK', color: 'bg-red-600' },
+                    { id: 19, content: 'AT', color: 'bg-yellow-500' },
+                    { id: 20, content: 'AMAZON', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu trabalho na Amazon.",
+                explanation: {
+                    title: "Ponto no Mapa",
+                    l1: "Eu trabalho na Amazon.",
+                    l2: "Use **AT** para empresas. Pense em um endereço ou ponto fixo.",
+                    hook: "FALE COM PRECISÃO: Empresa = AT."
+                }
+            },
+            {
+                id: 6,
+                title: "Bloco 6: Work + IN",
+                target: [
+                    { id: 21, content: 'I', color: 'bg-lime-500' },
+                    { id: 22, content: 'WORK', color: 'bg-red-600' },
+                    { id: 23, content: 'IN', color: 'bg-yellow-500' },
+                    { id: 24, content: 'FINANCE', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu trabalho em finanças.",
+                explanation: {
+                    title: "Dentro da Caixa",
+                    l1: "Eu trabalho em finanças.",
+                    l2: "Use **IN** para áreas ou departamentos. Você está 'dentro' da área.",
+                    hook: "DENTRO DA ÁREA: Departamento = IN."
+                }
+            },
+            {
+                id: 7,
+                title: "Bloco 7: Work + ON",
+                target: [
+                    { id: 25, content: 'I', color: 'bg-lime-500' },
+                    { id: 26, content: 'WORK', color: 'bg-red-600' },
+                    { id: 27, content: 'ON', color: 'bg-yellow-500' },
+                    { id: 28, content: 'REPORTS', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu trabalho em relatórios.",
+                explanation: {
+                    title: "Foco na Tarefa",
+                    l1: "Eu trabalho em relatórios.",
+                    l2: "Use **ON** para tarefas em andamento. Você está 'em cima' do problema.",
+                    hook: "MÃO NA MASSA: Tarefa/Projeto = ON."
+                }
+            },
+            {
+                id: 8,
+                title: "Bloco 8: Rotina Matinal",
+                target: [
+                    { id: 29, content: 'I', color: 'bg-lime-500' },
+                    { id: 30, content: 'START', color: 'bg-red-600' },
+                    { id: 31, content: 'THE DAY', color: 'bg-fuchsia-500' },
+                    { id: 32, content: 'WORKING ON EMAILS', color: 'bg-yellow-500' },
+                ],
+                hint: "Eu começo o dia trabalhando nos e-mails.",
+                explanation: {
+                    title: "Walk-through Real",
+                    l1: "Começo o dia nos e-mails.",
+                    l2: "Emails são tarefas, por isso usamos **ON**.",
+                    hook: "ROTINA: Descreva seu dia passo a passo."
+                }
+            },
+
+            // --- SECTION 3: HAVE GOT (POSSESSION & SCHEDULE) ---
+            {
+                id: 9,
+                title: "Bloco 9: Have Got (Posse)",
+                target: [
+                    { id: 33, content: 'I', color: 'bg-lime-500' },
+                    { id: 34, content: 'HAVE GOT', color: 'bg-red-600' },
+                    { id: 35, content: 'A', color: 'bg-fuchsia-500' },
+                    { id: 36, content: 'CAR', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu tenho um carro.",
+                explanation: {
+                    title: "O 'Ter' do Dia a Dia",
+                    l1: "Eu tenho um carro.",
+                    l2: "**Have Got** = Ter/Possuir agora. Pronúncia: {HÉV GÓT}.",
+                    hook: "SEJA DIRETO: Posse atual = Have Got."
+                }
+            },
+            {
+                id: 10,
+                title: "Bloco 10: Have Got (Agenda)",
+                target: [
+                    { id: 37, content: 'I', color: 'bg-lime-500' },
+                    { id: 38, content: 'HAVE GOT', color: 'bg-red-600' },
+                    { id: 39, content: 'A', color: 'bg-fuchsia-500' },
+                    { id: 40, content: 'MEETING TODAY', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu tenho uma reunião hoje.",
+                explanation: {
+                    title: "Compromisso Marcado",
+                    l1: "Tenho uma reunião hoje.",
+                    l2: "Use para itens na sua agenda. Já está marcado!",
+                    hook: "PARE DE PERDER TEMPO: Agenda cheia = Have Got."
+                }
+            },
+            {
+                id: 11,
+                title: "Bloco 11: Have Got (Imediato)",
+                target: [
+                    { id: 41, content: 'I', color: 'bg-lime-500' },
+                    { id: 42, content: 'HAVE GOT', color: 'bg-red-600' },
+                    { id: 43, content: 'A', color: 'bg-fuchsia-500' },
+                    { id: 44, content: 'CALL NOW', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu tenho uma ligação agora.",
+                explanation: {
+                    title: "Ação Imediata",
+                    l1: "Tenho um call agora.",
+                    l2: "Call = Ligação/Conferência. Acontece neste momento.",
+                    hook: "AGORA: Use para justificar que está ocupado."
+                }
+            },
+            {
+                id: 12,
+                title: "Bloco 12: Has Got (Empresa)",
+                target: [
+                    { id: 45, content: 'THE COMPANY', color: 'bg-lime-500' },
+                    { id: 46, content: 'HAS GOT', color: 'bg-red-600' },
+                    { id: 47, content: 'CAPITAL', color: 'bg-fuchsia-500' },
+                ],
+                hint: "A empresa tem capital.",
+                explanation: {
+                    title: "Terceira Pessoa",
+                    l1: "A empresa tem capital.",
+                    l2: "Para 'It' (a empresa), usamos **HAS GOT**.",
+                    hook: "GRAVE ISSO: He/She/It = HAS GOT."
+                }
+            },
+            {
+                id: 13,
+                title: "Bloco 13: Posse Intangível",
+                target: [
+                    { id: 48, content: 'I', color: 'bg-lime-500' },
+                    { id: 49, content: 'HAVE GOT', color: 'bg-red-600' },
+                    { id: 50, content: 'ACCESS', color: 'bg-fuchsia-500' },
+                    { id: 51, content: 'TO THE SYSTEM', color: 'bg-yellow-500' },
+                ],
+                hint: "Eu tenho acesso ao sistema.",
+                explanation: {
+                    title: "Não é físico",
+                    l1: "Tenho acesso ao sistema.",
+                    l2: "Você pode 'ter' coisas que não toca, como acesso ou permissão.",
+                    hook: "POSSE: Físico ou Abstrato, tanto faz!"
+                }
+            },
+            {
+                id: 14,
+                title: "Bloco 14: Consulta Médica",
+                target: [
+                    { id: 52, content: 'I', color: 'bg-lime-500' },
+                    { id: 53, content: 'HAVE GOT', color: 'bg-red-600' },
+                    { id: 54, content: 'A', color: 'bg-fuchsia-500' },
+                    { id: 55, content: "DOCTOR'S APPOINTMENT", color: 'bg-fuchsia-500' },
+                ],
+                hint: "Eu tenho uma consulta médica.",
+                explanation: {
+                    title: "Saúde em Dia",
+                    l1: "Tenho consulta médica.",
+                    l2: "Appointment = Horário marcado (médico, banco).",
+                    hook: "NÃO ESQUEÇA: Appointment é formal e agendado."
+                }
+            },
+
+            // --- SECTION 4: DEADLINES ---
+            {
+                id: 15,
+                title: "Bloco 15: O Prazo",
+                target: [
+                    { id: 56, content: 'THE', color: 'bg-indigo-500' },
+                    { id: 57, content: 'DEADLINE', color: 'bg-red-600' },
+                    { id: 58, content: 'IS', color: 'bg-cyan-600' },
+                    { id: 59, content: 'FRIDAY', color: 'bg-lime-500' },
+                ],
+                hint: "O prazo final é sexta-feira.",
+                explanation: {
+                    title: "Prazo Final",
+                    l1: "O prazo é sexta.",
+                    l2: "Deadline = {DÉD-LÁIN}. Data limite absoluta.",
+                    hook: "NÃO PERCA O PRAZO: Seja claro sobre a data."
+                }
+            },
+            {
+                id: 16,
+                title: "Bloco 16: No Caminho Certo",
+                target: [
+                    { id: 60, content: 'WE', color: 'bg-lime-500' },
+                    { id: 61, content: 'ARE', color: 'bg-cyan-600' },
+                    { id: 62, content: 'ON TRACK', color: 'bg-green-500' },
+                    { id: 63, content: 'TO MEET THE DEADLINE', color: 'bg-indigo-500' },
+                ],
+                hint: "Estamos no caminho certo para cumprir o prazo.",
+                explanation: {
+                    title: "Status Verde",
+                    l1: "Estamos no caminho certo.",
+                    l2: "On track = Tudo ok. To meet = Cumprir.",
+                    hook: "TUDO VERDE: Use para tranquilizar o chefe."
+                }
+            },
+            {
+                id: 17,
+                title: "Bloco 17: Risco de Atraso",
+                target: [
+                    { id: 64, content: 'WE', color: 'bg-lime-500' },
+                    { id: 65, content: 'MIGHT MISS', color: 'bg-red-500' },
+                    { id: 66, content: 'THE', color: 'bg-indigo-500' },
+                    { id: 67, content: 'DEADLINE', color: 'bg-red-600' },
+                ],
+                hint: "Podemos perder o prazo.",
+                explanation: {
+                    title: "Status Amarelo",
+                    l1: "Podemos perder o prazo.",
+                    l2: "Might = Possibilidade. Miss = Perder (horário/prazo).",
+                    hook: "ALERTA: Avise antes que o problema estoure!"
+                }
+            },
+            {
+                id: 18,
+                title: "Bloco 18: Entrega Feita",
+                target: [
+                    { id: 68, content: 'THE REPORT', color: 'bg-lime-500' },
+                    { id: 69, content: 'WAS DELIVERED', color: 'bg-cyan-600' },
+                    { id: 70, content: 'ON TIME', color: 'bg-green-500' },
+                ],
+                hint: "O relatório foi entregue no prazo.",
+                explanation: {
+                    title: "Status Azul",
+                    l1: "Relatório entregue no prazo.",
+                    l2: "On time = Pontualmente/No prazo.",
+                    hook: "SUCESSO: Tarefa concluída corretamente."
+                }
+            },
+
+            // --- SECTION 5: SMALL TALK ---
+            {
+                id: 19,
+                title: "Bloco 19: Pergunta Social",
+                target: [
+                    { id: 71, content: 'HI THERE', color: 'bg-yellow-500' },
+                    { id: 72, content: 'HOW WAS', color: 'bg-cyan-600' },
+                    { id: 73, content: 'YOUR', color: 'bg-fuchsia-500' },
+                    { id: 74, content: 'WEEKEND?', color: 'bg-fuchsia-500' },
+                ],
+                hint: "Oi! Como foi seu fim de semana?",
+                explanation: {
+                    title: "Quebra-Gelo",
+                    l1: "Oi, como foi o fim de semana?",
+                    l2: "Hi there = Oi informal. Use para começar conversas leves.",
+                    hook: "SEJA AMIGÁVEL: Small talk conecta pessoas."
+                }
+            },
+            {
+                id: 20,
+                title: "Bloco 20: Resposta Padrão",
+                target: [
+                    { id: 75, content: 'BUSINESS', color: 'bg-lime-500' },
+                    { id: 76, content: 'AS', color: 'bg-cyan-600' },
+                    { id: 77, content: 'USUAL', color: 'bg-green-500' },
+                ],
+                hint: "Tudo normal! (Como de costume)",
+                explanation: {
+                    title: "Como está o trabalho?",
+                    l1: "Tudo normal!",
+                    l2: "Business as usual = Sem novidades, rotina normal.",
+                    hook: "RESPOSTA PADRÃO: Profissional e direta."
+                }
+            }
+        ];
+
+        // --- COMPONENTS ---
+
+        const TypingText = ({ text, delay = 30, className = '', onComplete }) => {
+            const [displayedText, setDisplayedText] = useState('');
+            const [currentIndex, setCurrentIndex] = useState(0);
+
+            useEffect(() => {
+                if (currentIndex < text.length) {
+                    const timeout = setTimeout(() => {
+                        setDisplayedText((prev) => prev + text[currentIndex]);
+                        setCurrentIndex((prev) => prev + 1);
+                    }, delay);
+                    return () => clearTimeout(timeout);
+                } else if (onComplete) {
+                    onComplete();
+                }
+            }, [currentIndex, delay, text, onComplete]);
+
+            return <p className={className}>{displayedText}<span className="typing-cursor"></span></p>;
+        };
+
+        const LegoBlock = ({ id, content, color, isDraggingSource }) => {
+            const handleDragStart = (e) => {
+                e.dataTransfer.setData("text/plain", id);
+                e.dataTransfer.effectAllowed = "move";
+            };
+
+            return (
+                <div
+                    draggable="true"
+                    onDragStart={handleDragStart}
+                    className={`
+                        ${color} text-gray-900 font-extrabold p-3 sm:p-4 rounded-xl shadow-neon cursor-grab select-none
+                        transform transition-all duration-300 active:scale-105 active:cursor-grabbing
+                        ${isDraggingSource ? 'opacity-100 hover:scale-105' : 'opacity-100'}
+                        text-lg sm:text-xl tracking-wider min-w-[80px] sm:min-w-[100px] text-center
+                    `}
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                    {content}
+                </div>
+            );
+        };
+
+        const DropZone = ({ index, onDropBlock, block, isCorrect }) => {
+            const [isOver, setIsOver] = useState(false);
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                setIsOver(true);
+            };
+
+            const handleDragLeave = () => {
+                setIsOver(false);
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                setIsOver(false);
+                const id = e.dataTransfer.getData("text/plain");
+                if (id) {
+                    onDropBlock(parseInt(id), index);
+                }
+            };
+
+            let borderColor = 'border-gray-700';
+            let background = 'bg-gray-800/50 border-dashed';
+
+            if (block) {
+                borderColor = isCorrect ? 'border-lime-400 shadow-lg shadow-lime-900' : 'border-red-500 shadow-lg shadow-red-900';
+                background = 'bg-gray-900/50';
+            } else if (isOver) {
+                borderColor = 'border-cyan-500 bg-gray-700 transition duration-150';
+            }
+
+            return (
+                <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`
+                        min-h-[4rem] sm:min-h-[5rem] w-full sm:w-auto flex-1 flex items-center justify-center p-2 rounded-xl border-4 transition-all duration-300
+                        ${borderColor} ${background}
+                        ${isCorrect ? 'animate-pulseOnce' : ''}
+                    `}
+                >
+                    {block ? (
+                        <LegoBlock id={block.id} content={block.content} color={block.color} isDraggingSource={false} />
+                    ) : (
+                        <span className="text-gray-500 font-medium italic text-xs sm:text-sm">Block {index + 1}</span>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MAIN APP ---
+        const App = () => {
+            const [level, setLevel] = useState(0);
+            const currentDrill = DRILLS[level];
+
+            const [currentOrder, setCurrentOrder] = useState([]);
+            const [shuffledBlocks, setShuffledBlocks] = useState([]);
+            const [feedback, setFeedback] = useState({ message: '', type: null });
+            const [isLevelComplete, setIsLevelComplete] = useState(false);
+
+            // Initialize Level
+            const initLevel = useCallback(() => {
+                const target = DRILLS[level].target;
+                setCurrentOrder(Array(target.length).fill(null));
+
+                // Shuffle
+                let array = [...target];
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                setShuffledBlocks(array);
+                setFeedback({ message: '', type: null });
+                setIsLevelComplete(false);
+            }, [level]);
+
+            useEffect(() => {
+                initLevel();
+            }, [initLevel]);
+
+            const checkCompletion = useCallback((newOrder) => {
+                const isComplete = newOrder.every(block => block !== null);
+                if (isComplete) {
+                    const isCorrect = newOrder.every((block, index) => block.id === currentDrill.target[index].id);
+
+                    if (isCorrect) {
+                        setFeedback({ message: "PERFEITO! Bloco construído com sucesso.", type: 'success' });
+                        setIsLevelComplete(true);
+                    } else {
+                        setFeedback({ message: "A ordem não está certa. Tente novamente!", type: 'error' });
+                        setIsLevelComplete(false);
+                    }
+                }
+            }, [currentDrill]);
+
+            const onDropBlock = useCallback((blockId, dropIndex) => {
+                const blockToMove = currentDrill.target.find(block => block.id === blockId);
+                if (!blockToMove) return;
+
+                const oldIndex = currentOrder.findIndex(block => block && block.id === blockId);
+                let newOrder = [...currentOrder];
+
+                if (oldIndex !== -1) newOrder[oldIndex] = null;
+                newOrder[dropIndex] = blockToMove;
+
+                setCurrentOrder(newOrder);
+                checkCompletion(newOrder);
+
+                const blocksInDropZone = newOrder.filter(b => b !== null).map(b => b.id);
+                setShuffledBlocks(currentDrill.target.filter(b => !blocksInDropZone.includes(b.id)));
+            }, [currentOrder, checkCompletion, currentDrill]);
+
+            const nextLevel = () => {
+                if (level < DRILLS.length - 1) {
+                    setLevel(prev => prev + 1);
+                } else {
+                    setLevel(0); 
+                }
+            };
+
+            return (
+                <div className="min-h-screen pt-8 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 to-black">
+
+                    {/* Header */}
+                    <header className="text-center mb-8">
+                        <h1 className="text-3xl sm:text-5xl font-extrabold text-white mb-2 tracking-tighter drop-shadow-lg shadow-cyan-500/50 font-display">
+                            <span className="text-fuchsia-400">Lego Block</span> <span className="text-cyan-400">Builder</span>
+                        </h1>
+                        <div className="flex justify-center items-center gap-2 text-gray-400 text-sm font-medium">
+                            <span>Level {level + 1} of {DRILLS.length}</span>
+                            <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-cyan-500 transition-all duration-500" 
+                                    style={{ width: `${((level + 1) / DRILLS.length) * 100}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Content Grid */}
+                    <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                        {/* LEFT COLUMN: Explanation */}
+                        <div className="lg:col-span-1 space-y-6">
+                            <div className="bg-gray-800 p-6 rounded-2xl shadow-2xl border border-cyan-700 h-full">
+                                <h2 className="text-xl font-bold text-cyan-400 mb-4 border-b border-gray-700 pb-2 flex items-center">
+                                    <Focus className="w-5 h-5 mr-2 text-fuchsia-400"/> 
+                                    {currentDrill.explanation.title}
+                                </h2>
+
+                                <div className="text-gray-300 space-y-4">
+                                    <p className="font-medium text-white">{currentDrill.explanation.l1}</p>
+                                    <p className="text-sm leading-relaxed">{currentDrill.explanation.l2}</p>
+
+                                    <div className="p-3 bg-red-900/30 border border-red-500/50 rounded-lg">
+                                        <p className="text-red-300 font-bold text-sm italic">
+                                            {currentDrill.explanation.hook}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT COLUMN: Drill */}
+                        <div className="lg:col-span-2 space-y-6">
+
+                            {/* Target Hint */}
+                            <div className="text-center">
+                                <p className="text-gray-400 text-sm mb-2">Target Sentence:</p>
+                                <h3 className="text-2xl font-bold text-white tracking-wide">{currentDrill.hint}</h3>
+                            </div>
+
+                            {/* Drop Zones */}
+                            <div className="flex flex-wrap justify-center gap-2 p-4 bg-gray-900/60 rounded-2xl shadow-inner shadow-black border border-gray-700 min-h-[8rem]">
+                                {currentOrder.map((block, index) => (
+                                    <DropZone
+                                        key={index}
+                                        index={index}
+                                        onDropBlock={onDropBlock}
+                                        block={block}
+                                        isCorrect={block && block.id === currentDrill.target[index].id}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Feedback & Next Button */}
+                            <div className="h-16 flex items-center justify-center">
+                                {feedback.message && !isLevelComplete && (
+                                    <div className={`px-4 py-2 rounded-lg font-bold flex items-center ${feedback.type === 'error' ? 'text-red-400 bg-red-900/50' : 'text-lime-400'}`}>
+                                        {feedback.type === 'error' && <XCircle className="w-5 h-5 mr-2"/>}
+                                        {feedback.message}
+                                    </div>
+                                )}
+
+                                {isLevelComplete && (
+                                    <button 
+                                        onClick={nextLevel}
+                                        className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-3 px-8 rounded-xl shadow-neon flex items-center transform hover:scale-105 transition-all animate-pulseOnce"
+                                    >
+                                        {level < DRILLS.length - 1 ? "Next Level" : "Restart Drills"} <ArrowRight className="ml-2 w-5 h-5"/>
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Source Blocks */}
+                            <div className="p-6 bg-gray-900 rounded-2xl shadow-2xl shadow-black border border-cyan-700">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-gray-400 font-semibold text-sm">Lego Pieces</h3>
+                                    <button onClick={initLevel} className="text-xs text-cyan-400 hover:text-white flex items-center">
+                                        <RefreshCw className="w-3 h-3 mr-1"/> Reset
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-3">
+                                    {shuffledBlocks.map((block) => (
+                                        <LegoBlock 
+                                            key={block.id} 
+                                            id={block.id} 
+                                            content={block.content} 
+                                            color={block.color} 
+                                            isDraggingSource={true}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer className="text-center mt-12 text-gray-600 text-xs border-t border-gray-800 pt-4">
+                        <p>English Unlocked: The Brazilian Way</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
